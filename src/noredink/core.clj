@@ -34,6 +34,7 @@
 
 ; Presumably in production we'd have a similarly indexed tables
 (defn questions-by-strand-and-standard
+  "Return map of questions indexed by [strand-id standard-id]"
   [questions]
   (group-by #(vector (:strand_id %) (:standard_id %)) questions))
 
@@ -55,10 +56,37 @@
     (zipmap strands standards)))
 
 
+; Question-picking logic here
 (defn make-quiz
-  "return seq of questions given number to return"
+  "Return seq of questions given number to return. "
   [num-questions]
-  num-questions)
+  (let [questions (get-questions)
+        questions-map (questions-by-strand-and-standard questions)
+        standards (standards-by-strand questions)
+        strands (get-strands questions)
+        total-strands (count strands)]
+    (loop [countdown num-questions
+           strand-counter 0
+           standard-counters {} ; map from standard to how many times it's used
+           quiz nil]
+      (if (> countdown 0)
+        ; Use pigeonhole principal to balance strands and standards.
+        ; Should include some better heuristic than to take first available question.
+        (let [strand-index (mod strand-counter total-strands)
+              strand (nth strands strand-index)
+              standards-for-strand (get standards strand)
+              standard-total (count standards-for-strand)
+              standard-counter (get standard-counters strand 0)
+              standard-index (mod standard-counter standard-total)
+              standard (nth standards-for-strand standard-index)
+              question (first (get questions-map [strand standard]))]
+          (recur
+            (dec countdown)
+            (inc strand-counter)
+            (assoc standard-counters strand (inc standard-index))
+            (conj quiz (:question_id question))))
+        quiz))))
+
 
 ; TODO: change to loop until ctrl-c
 (defn -main
