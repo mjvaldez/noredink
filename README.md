@@ -3,7 +3,11 @@
 
 ## Usage
 
-FIXME
+
+1. Install [leiningen](http://leiningen.org/#install)
+2. Clone the repo.
+3. From root repo directory: lein run
+
 
 ## License
 
