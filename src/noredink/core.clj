@@ -1,13 +1,25 @@
 (ns noredink.core
   (require [clojure.data.csv :as csv]))
 
+(defn csv-fn [cols]
+  (fn [row]
+    (let [v (first (csv/read-csv row))]
+      (zipmap cols v))))
+
+(defn read-csv-file [filename cols]
+  (with-open [file (clojure.java.io/reader filename :encoding "ISO-8859-1")]
+    (map (csv-fn cols) (doall (line-seq file)))))
+
 ; TODO: reading all into memory because the data is small but could be done lazily
 (defn get-questions
   "return seq of questions"
   []
-  (with-open
-    [question-file (clojure.java.io/reader "questions.csv")]
-    (rest (doall (csv/read-csv question-file)))))
+  (rest
+    (read-csv-file
+      "questions.csv"
+      [:strand_id :strand_name
+       :standard_id :standard_name
+       :question_id :difficulty])))
 
 (defn make-quiz
   "return seq of questions given number to return"
