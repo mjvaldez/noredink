@@ -27,11 +27,11 @@
 
 (defn get-strand-ids
   [questions]
-  (map :strand_id questions))
+  (set (map :strand_id questions)))
 
-(defn standards-for-strand-id
+(defn standard-ids-for-strand-id
   [questions strand-id]
-  (map :strand_id (filter #(= strand-id (:strand_id %)))))
+  (set (map :standard_id (filter #(= strand-id (:strand_id %)) questions))))
 
 (defn make-quiz
   "return seq of questions given number to return"
